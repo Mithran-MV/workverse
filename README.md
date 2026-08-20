@@ -128,5 +128,3 @@ the client could not be installed at all (a React 18 / emoji-mart 3 peer conflic
 the chat window's message list had been removed, no React component had ever been
 typechecked, and linting was broken repository-wide. See the commit history.
 
-The virtual-office concept follows in the footsteps of
-[SkyOffice](https://github.com/kevinshen56714/SkyOffice).
