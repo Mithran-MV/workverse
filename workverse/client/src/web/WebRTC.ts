@@ -1,12 +1,12 @@
-import Peer from 'peerjs'
+import Peer, { MediaConnection } from 'peerjs'
 import Network from '../services/Network'
 import store from '../stores'
 import { setVideoConnected } from '../stores/UserStore'
 
 export default class WebRTC {
   private myPeer: Peer
-  private peers = new Map<string, { call: Peer.MediaConnection; video: HTMLVideoElement }>()
-  private onCalledPeers = new Map<string, { call: Peer.MediaConnection; video: HTMLVideoElement }>()
+  private peers = new Map<string, { call: MediaConnection; video: HTMLVideoElement }>()
+  private onCalledPeers = new Map<string, { call: MediaConnection; video: HTMLVideoElement }>()
   private videoGrid = document.querySelector('.video-grid')
   private buttonGrid = document.querySelector('.button-grid')
   private myVideo = document.createElement('video')
@@ -20,8 +20,7 @@ export default class WebRTC {
     console.log('userId:', userId)
     console.log('sanitizedId:', sanitizedId)
     this.myPeer.on('error', (err) => {
-      console.log(err.type)
-      console.error(err)
+      console.error('peer error', err.type, err)
     })
 
     // mute your own video stream (you don't want to hear yourself)
@@ -75,6 +74,7 @@ export default class WebRTC {
         this.network.videoConnected()
       })
       .catch((error) => {
+        console.error('could not get local media', error)
         if (alertOnError) window.alert('No webcam or microphone found, or permission is blocked')
       })
   }

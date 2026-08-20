@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import Player from './Player'
 import MyPlayer from './MyPlayer'
-import { sittingShiftData } from './Player'
+import { sittingShiftData, toSittingDirection } from './Player'
 import WebRTC from '../web/WebRTC'
 import { Event, phaserEvents } from '../events/EventCenter'
 
@@ -109,12 +109,11 @@ export default class OtherPlayer extends Player {
 
     this.lastUpdateTimestamp = t
     this.setDepth(this.y) // change player.depth based on player.y
-    const animParts = this.anims.currentAnim.key.split('_')
+    const animParts = this.anims.currentAnim!.key.split('_')
     const animState = animParts[1]
     if (animState === 'sit') {
-      const animDir = animParts[2]
-      const sittingShift = sittingShiftData[animDir]
-      if (sittingShift) {
+      const animDir = toSittingDirection(animParts[2])
+      if (animDir) {
         // set hardcoded depth (differs between directions) if player sits down
         this.setDepth(this.depth + sittingShiftData[animDir][2])
       }

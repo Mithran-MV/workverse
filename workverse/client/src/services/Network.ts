@@ -130,10 +130,10 @@ export default class Network {
     // new instance added to the computers MapSchema
     this.room.state.computers.onAdd = (computer: IComputer, key: string) => {
       // track changes on every child object's connectedUser
-      computer.connectedUser.onAdd = (item, index) => {
+      computer.connectedUser.onAdd = (item) => {
         phaserEvents.emit(Event.ITEM_USER_ADDED, item, key, ItemType.COMPUTER)
       }
-      computer.connectedUser.onRemove = (item, index) => {
+      computer.connectedUser.onRemove = (item) => {
         phaserEvents.emit(Event.ITEM_USER_REMOVED, item, key, ItemType.COMPUTER)
       }
     }
@@ -147,16 +147,16 @@ export default class Network {
         })
       )
       // track changes on every child object's connectedUser
-      whiteboard.connectedUser.onAdd = (item, index) => {
+      whiteboard.connectedUser.onAdd = (item) => {
         phaserEvents.emit(Event.ITEM_USER_ADDED, item, key, ItemType.WHITEBOARD)
       }
-      whiteboard.connectedUser.onRemove = (item, index) => {
+      whiteboard.connectedUser.onRemove = (item) => {
         phaserEvents.emit(Event.ITEM_USER_REMOVED, item, key, ItemType.WHITEBOARD)
       }
     }
 
     // new instance added to the chatMessages ArraySchema
-    this.room.state.chatMessages.onAdd = (item, index) => {
+    this.room.state.chatMessages.onAdd = (item) => {
       store.dispatch(pushChatMessage(item))
     }
 

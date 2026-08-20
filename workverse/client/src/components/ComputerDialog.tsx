@@ -1,4 +1,3 @@
-import React from 'react'
 import styled from 'styled-components'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
@@ -74,10 +73,15 @@ const VideoGrid = styled.div`
   }
 `
 
-function VideoContainer({ playerName, stream }) {
+interface VideoContainerProps {
+  playerName?: string
+  stream?: MediaStream
+}
+
+function VideoContainer({ playerName, stream }: VideoContainerProps) {
   return (
     <div className="video-container">
-      <Video srcObject={stream} autoPlay></Video>
+      {stream && <Video srcObject={stream} autoPlay></Video>}
       {playerName && <div className="player-name">{playerName}</div>}
     </div>
   )

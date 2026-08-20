@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import logo from '../images/logo.png'
 import styled from 'styled-components'
 import Button from '@mui/material/Button'

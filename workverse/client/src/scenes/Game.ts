@@ -1,5 +1,7 @@
 import Phaser from 'phaser'
 
+type ArcadePhysicsCallback = Phaser.Types.Physics.Arcade.ArcadePhysicsCallback
+
 // import { debugDraw } from '../utils/debug'
 import { createCharacterAnims } from '../anims/CharacterAnims'
 
@@ -39,31 +41,70 @@ export default class Game extends Phaser.Scene {
     super('game')
   }
 
+  /**
+   * Phaser types input.keyboard as nullable because a game can be configured without the
+   * keyboard plugin. This scene is unplayable without it, so say so once here rather than
+   * guarding at every call site.
+   */
+  private get keyboard(): Phaser.Input.Keyboard.KeyboardPlugin {
+    if (!this.input.keyboard) {
+      throw new Error('keyboard input plugin is not enabled')
+    }
+
+    return this.input.keyboard
+  }
+
+  /**
+   * Looks up a Tiled object layer, failing loudly if the map does not contain it.
+   * A missing layer means the map asset and the code have gone out of step, which is a
+   * build problem rather than something to skip silently at runtime.
+   */
+  private requireObjectLayer(name: string): Phaser.Tilemaps.ObjectLayer {
+    const layer = this.map.getObjectLayer(name)
+
+    if (!layer) {
+      throw new Error(`object layer "${name}" is missing from the tilemap`)
+    }
+
+    return layer
+  }
+
+  /** Same, for a tileset referenced when placing objects. */
+  private requireTileset(name: string): Phaser.Tilemaps.Tileset {
+    const tileset = this.map.getTileset(name)
+
+    if (!tileset) {
+      throw new Error(`tileset "${name}" is missing from the tilemap`)
+    }
+
+    return tileset
+  }
+
   registerKeys() {
     this.cursors = {
-      ...this.input.keyboard.createCursorKeys(),
-      ...(this.input.keyboard.addKeys('W,S,A,D') as Keyboard),
+      ...this.keyboard.createCursorKeys(),
+      ...(this.keyboard.addKeys('W,S,A,D') as Keyboard),
     }
 
     // maybe we can have a dedicated method for adding keys if more keys are needed in the future
-    this.keyE = this.input.keyboard.addKey('E')
-    this.keyR = this.input.keyboard.addKey('R')
-    this.input.keyboard.disableGlobalCapture()
-    this.input.keyboard.on('keydown-ENTER', (event) => {
+    this.keyE = this.keyboard.addKey('E')
+    this.keyR = this.keyboard.addKey('R')
+    this.keyboard.disableGlobalCapture()
+    this.keyboard.on('keydown-ENTER', () => {
       store.dispatch(setShowChat(true))
       store.dispatch(setFocused(true))
     })
-    this.input.keyboard.on('keydown-ESC', (event) => {
+    this.keyboard.on('keydown-ESC', () => {
       store.dispatch(setShowChat(false))
     })
   }
 
   disableKeys() {
-    this.input.keyboard.enabled = false
+    this.keyboard.enabled = false
   }
 
   enableKeys() {
-    this.input.keyboard.enabled = true
+    this.keyboard.enabled = true
   }
 
   create(data: { network: Network }) {
@@ -78,7 +119,16 @@ export default class Game extends Phaser.Scene {
     this.map = this.make.tilemap({ key: 'tilemap' })
     const FloorAndGround = this.map.addTilesetImage('FloorAndGround', 'tiles_wall')
 
+    if (!FloorAndGround) {
+      throw new Error('tileset "FloorAndGround" is missing from the tilemap')
+    }
+
     const groundLayer = this.map.createLayer('Ground', FloorAndGround)
+
+    if (!groundLayer) {
+      throw new Error('layer "Ground" is missing from the tilemap')
+    }
+
     groundLayer.setCollisionByProperty({ collides: true })
 
     // debugDraw(groundLayer, this)
@@ -88,7 +138,7 @@ export default class Game extends Phaser.Scene {
 
     // import chair objects from Tiled map to Phaser
     const chairs = this.physics.add.staticGroup({ classType: Chair })
-    const chairLayer = this.map.getObjectLayer('Chair')
+    const chairLayer = this.requireObjectLayer('Chair')
     chairLayer.objects.forEach((chairObj) => {
       const item = this.addObjectFromTiled(chairs, chairObj, 'chairs', 'chair') as Chair
       // custom properties[0] is the object direction specified in Tiled
@@ -97,7 +147,7 @@ export default class Game extends Phaser.Scene {
 
     // import computers objects from Tiled map to Phaser
     const computers = this.physics.add.staticGroup({ classType: Computer })
-    const computerLayer = this.map.getObjectLayer('Computer')
+    const computerLayer = this.requireObjectLayer('Computer')
     computerLayer.objects.forEach((obj, i) => {
       const item = this.addObjectFromTiled(computers, obj, 'computers', 'computer') as Computer
       item.setDepth(item.y + item.height * 0.27)
@@ -108,7 +158,7 @@ export default class Game extends Phaser.Scene {
 
     // import whiteboards objects from Tiled map to Phaser
     const whiteboards = this.physics.add.staticGroup({ classType: Whiteboard })
-    const whiteboardLayer = this.map.getObjectLayer('Whiteboard')
+    const whiteboardLayer = this.requireObjectLayer('Whiteboard')
     whiteboardLayer.objects.forEach((obj, i) => {
       const item = this.addObjectFromTiled(
         whiteboards,
@@ -123,8 +173,8 @@ export default class Game extends Phaser.Scene {
 
     // import vending machine objects from Tiled map to Phaser
     const vendingMachines = this.physics.add.staticGroup({ classType: VendingMachine })
-    const vendingMachineLayer = this.map.getObjectLayer('VendingMachine')
-    vendingMachineLayer.objects.forEach((obj, i) => {
+    const vendingMachineLayer = this.requireObjectLayer('VendingMachine')
+    vendingMachineLayer.objects.forEach((obj) => {
       this.addObjectFromTiled(vendingMachines, obj, 'vendingmachines', 'vendingmachine')
     })
 
@@ -171,7 +221,13 @@ export default class Game extends Phaser.Scene {
     this.network.onChatMessageAdded(this.handleChatMessageAdded, this)
   }
 
-  private handleItemSelectorOverlap(playerSelector, selectionItem) {
+  // Phaser types both overlap arguments as GameObjectWithBody | Tile because either side
+  // could be a tile; these overlaps are only ever registered between the game objects
+  // named here, so narrow once on entry.
+  private handleItemSelectorOverlap: ArcadePhysicsCallback = (selector, selection) => {
+    const playerSelector = selector as PlayerSelector
+    const selectionItem = selection as Item
+
     const currentItem = playerSelector.selectedItem as Item
     // currentItem is undefined if nothing was perviously selected
     if (currentItem) {
@@ -197,7 +253,7 @@ export default class Game extends Phaser.Scene {
     const actualX = object.x! + object.width! * 0.5
     const actualY = object.y! - object.height! * 0.5
     const obj = group
-      .get(actualX, actualY, key, object.gid! - this.map.getTileset(tilesetName).firstgid)
+      .get(actualX, actualY, key, object.gid! - this.requireTileset(tilesetName).firstgid)
       .setDepth(actualY)
     return obj
   }
@@ -209,12 +265,12 @@ export default class Game extends Phaser.Scene {
     collidable: boolean
   ) {
     const group = this.physics.add.staticGroup()
-    const objectLayer = this.map.getObjectLayer(objectLayerName)
+    const objectLayer = this.requireObjectLayer(objectLayerName)
     objectLayer.objects.forEach((object) => {
       const actualX = object.x! + object.width! * 0.5
       const actualY = object.y! - object.height! * 0.5
       group
-        .get(actualX, actualY, key, object.gid! - this.map.getTileset(tilesetName).firstgid)
+        .get(actualX, actualY, key, object.gid! - this.requireTileset(tilesetName).firstgid)
         .setDepth(actualY)
     })
     if (this.myPlayer && collidable)
@@ -252,8 +308,13 @@ export default class Game extends Phaser.Scene {
     otherPlayer?.updateOtherPlayer(field, value)
   }
 
-  private handlePlayersOverlap(myPlayer, otherPlayer) {
-    otherPlayer.makeCall(myPlayer, this.network?.webRTC)
+  private handlePlayersOverlap: ArcadePhysicsCallback = (mine, other) => {
+    const myPlayer = mine as MyPlayer
+    const otherPlayer = other as OtherPlayer
+
+    if (this.network?.webRTC) {
+      otherPlayer.makeCall(myPlayer, this.network.webRTC)
+    }
   }
 
   private handleItemUserAdded(playerId: string, itemId: string, itemType: ItemType) {
@@ -281,7 +342,7 @@ export default class Game extends Phaser.Scene {
     otherPlayer?.updateDialogBubble(content)
   }
 
-  update(t: number, dt: number) {
+  update(_t: number, _dt: number) {
     if (this.myPlayer && this.network) {
       this.playerSelector.update(this.myPlayer, this.cursors)
       this.myPlayer.update(this.playerSelector, this.cursors, this.keyE, this.keyR, this.network)

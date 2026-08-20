@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import PlayerSelector from './PlayerSelector'
 import { PlayerBehavior } from '../../../types/PlayerBehavior'
-import { sittingShiftData } from './Player'
+import { sittingShiftData, toSittingDirection } from './Player'
 import Player from './Player'
 import Network from '../services/Network'
 import Chair from '../items/Chair'
@@ -41,7 +41,7 @@ export default class MyPlayer extends Player {
   setPlayerTexture(texture: string) {
     this.playerTexture = texture
     this.anims.play(`${this.playerTexture}_idle_down`, true)
-    phaserEvents.emit(Event.MY_PLAYER_TEXTURE_CHANGE, this.x, this.y, this.anims.currentAnim.key)
+    phaserEvents.emit(Event.MY_PLAYER_TEXTURE_CHANGE, this.x, this.y, this.anims.currentAnim!.key)
   }
 
   handleJoystickMovement(movement: JoystickMovement) {
@@ -93,17 +93,21 @@ export default class MyPlayer extends Player {
             callback: () => {
               // update character velocity and position
               this.setVelocity(0, 0)
-              if (chairItem.itemDirection) {
-                this.setPosition(
-                  chairItem.x + sittingShiftData[chairItem.itemDirection][0],
-                  chairItem.y + sittingShiftData[chairItem.itemDirection][1]
-                ).setDepth(chairItem.depth + sittingShiftData[chairItem.itemDirection][2])
+
+              // itemDirection is a free-form string on the tilemap object; narrow it once
+              // so a chair authored with a typo shifts the player nowhere instead of
+              // throwing on an undefined lookup.
+              const sittingDirection = toSittingDirection(chairItem.itemDirection)
+
+              if (sittingDirection) {
+                const [xShift, yShift, depthShift] = sittingShiftData[sittingDirection]
+
+                this.setPosition(chairItem.x + xShift, chairItem.y + yShift).setDepth(
+                  chairItem.depth + depthShift
+                )
                 // also update playerNameContainer velocity and position
                 this.playContainerBody.setVelocity(0, 0)
-                this.playerContainer.setPosition(
-                  chairItem.x + sittingShiftData[chairItem.itemDirection][0],
-                  chairItem.y + sittingShiftData[chairItem.itemDirection][1] - 30
-                )
+                this.playerContainer.setPosition(chairItem.x + xShift, chairItem.y + yShift - 30)
               }
 
               this.play(`${this.playerTexture}_sit_${chairItem.itemDirection}`, true)
@@ -114,7 +118,7 @@ export default class MyPlayer extends Player {
                 playerSelector.setPosition(0, 0)
               }
               // send new location and anim to server
-              network.updatePlayer(this.x, this.y, this.anims.currentAnim.key)
+              network.updatePlayer(this.x, this.y, this.anims.currentAnim!.key)
             },
             loop: false,
           })
@@ -160,7 +164,7 @@ export default class MyPlayer extends Player {
         this.playContainerBody.velocity.setLength(speed)
 
         // update animation according to velocity and send new location and anim to server
-        if (vx !== 0 || vy !== 0) network.updatePlayer(this.x, this.y, this.anims.currentAnim.key)
+        if (vx !== 0 || vy !== 0) network.updatePlayer(this.x, this.y, this.anims.currentAnim!.key)
         if (vx > 0) {
           this.play(`${this.playerTexture}_run_right`, true)
         } else if (vx < 0) {
@@ -170,14 +174,14 @@ export default class MyPlayer extends Player {
         } else if (vy < 0) {
           this.play(`${this.playerTexture}_run_up`, true)
         } else {
-          const parts = this.anims.currentAnim.key.split('_')
+          const parts = this.anims.currentAnim!.key.split('_')
           parts[1] = 'idle'
           const newAnim = parts.join('_')
           // this prevents idle animation keeps getting called
-          if (this.anims.currentAnim.key !== newAnim) {
+          if (this.anims.currentAnim!.key !== newAnim) {
             this.play(parts.join('_'), true)
             // send new location and anim to server
-            network.updatePlayer(this.x, this.y, this.anims.currentAnim.key)
+            network.updatePlayer(this.x, this.y, this.anims.currentAnim!.key)
           }
         }
         break
@@ -185,14 +189,14 @@ export default class MyPlayer extends Player {
       case PlayerBehavior.SITTING:
         // back to idle if player press E while sitting
         if (Phaser.Input.Keyboard.JustDown(keyE)) {
-          const parts = this.anims.currentAnim.key.split('_')
+          const parts = this.anims.currentAnim!.key.split('_')
           parts[1] = 'idle'
           this.play(parts.join('_'), true)
           this.playerBehavior = PlayerBehavior.IDLE
           this.chairOnSit?.clearDialogBox()
           playerSelector.setPosition(this.x, this.y)
           playerSelector.update(this, cursors)
-          network.updatePlayer(this.x, this.y, this.anims.currentAnim.key)
+          network.updatePlayer(this.x, this.y, this.anims.currentAnim!.key)
         }
         break
     }

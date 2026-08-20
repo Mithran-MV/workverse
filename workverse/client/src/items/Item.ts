@@ -6,6 +6,12 @@ export default class Item extends Phaser.Physics.Arcade.Sprite {
   private statusBox!: Phaser.GameObjects.Container
   itemType!: ItemType
 
+  /**
+   * Shown when the player walks onto this item. Every concrete item overrides this;
+   * the base does nothing so an item without a prompt is still usable.
+   */
+  onOverlapDialog() {}
+
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | number) {
     super(scene, x, y, texture, frame)
 

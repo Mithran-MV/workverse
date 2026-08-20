@@ -1,17 +1,34 @@
 import Phaser from 'phaser'
 import { PlayerBehavior } from '../../../types/PlayerBehavior'
+/** The four directions a character can sit facing. */
+export type SittingDirection = 'up' | 'down' | 'left' | 'right'
+
 /**
  * shifting distance for sitting animation
  * format: direction: [xShift, yShift, depthShift]
  */
-export const sittingShiftData = {
+export const sittingShiftData: Record<SittingDirection, [number, number, number]> = {
   up: [0, 3, -10],
   down: [0, 3, 1],
   left: [0, -8, 10],
   right: [0, -8, 10],
 }
 
+/** Narrows an item's free-form direction string to a known sitting direction. */
+export function toSittingDirection(direction: string | undefined): SittingDirection | undefined {
+  return direction === 'up' || direction === 'down' || direction === 'left' || direction === 'right'
+    ? direction
+    : undefined
+}
+
 export default class Player extends Phaser.Physics.Arcade.Sprite {
+  /**
+   * A physics sprite that has been added to a scene always has an arcade body; Phaser
+   * types it as nullable because it is only attached on add. Declaring the narrower type
+   * here keeps the movement code free of non-null assertions.
+   */
+  declare body: Phaser.Physics.Arcade.Body
+
   playerId: string
   playerTexture: string
   playerBehavior = PlayerBehavior.IDLE
