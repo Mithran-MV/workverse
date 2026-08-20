@@ -19,8 +19,8 @@ import ChatMessageUpdateCommand from './commands/ChatMessageUpdateCommand'
 
 export class workverse extends Room<OfficeState> {
   private dispatcher = new Dispatcher(this)
-  private name: string
-  private description: string
+  private name!: string
+  private description!: string
   private password: string | null = null
 
   async onCreate(options: IRoomData) {
@@ -68,6 +68,10 @@ export class workverse extends Room<OfficeState> {
     // when a player stop sharing screen
     this.onMessage(Message.STOP_SCREEN_SHARE, (client, message: { computerId: string }) => {
       const computer = this.state.computers.get(message.computerId)
+
+      // a client can send any id; an unknown one must not throw inside the handler
+      if (!computer) return
+
       computer.connectedUser.forEach((id) => {
         this.clients.forEach((cli) => {
           if (cli.sessionId === id && cli.sessionId !== client.sessionId) {
@@ -157,6 +161,12 @@ export class workverse extends Room<OfficeState> {
 
   async onAuth(client: Client, options: { password: string | null }) {
     if (this.password) {
+      // reject a missing password outright rather than handing null to bcrypt, which
+      // throws a type error the client sees as an unexplained disconnect
+      if (!options.password) {
+        throw new ServerError(403, 'Password is incorrect!')
+      }
+
       const validPassword = await bcrypt.compare(options.password, this.password)
       if (!validPassword) {
         throw new ServerError(403, 'Password is incorrect!')

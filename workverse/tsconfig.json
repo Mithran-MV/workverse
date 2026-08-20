@@ -1,0 +1,24 @@
+{
+  /*
+    Root configuration for the server and the shared types.
+    Tooling that looks for a tsconfig at the repository root - vitest and esbuild among
+    them - needs to find the decorator settings here, otherwise the @type() decorators in
+    the Colyseus schema are parsed with modern decorator semantics and fail outright.
+  */
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": ["server/**/*.ts", "types/**/*.ts"],
+  "exclude": ["node_modules", "client", "server/lib"]
+}

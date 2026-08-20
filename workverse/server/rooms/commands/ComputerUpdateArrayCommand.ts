@@ -23,7 +23,9 @@ export class ComputerRemoveUserCommand extends Command<IOfficeState, Payload> {
     const { client, computerId } = data
     const computer = this.state.computers.get(computerId)
 
-    if (computer.connectedUser.has(client.sessionId)) {
+    // an unknown id simply means there is nothing to remove; it must not throw and
+    // take the room down with it
+    if (computer?.connectedUser.has(client.sessionId)) {
       computer.connectedUser.delete(client.sessionId)
     }
   }

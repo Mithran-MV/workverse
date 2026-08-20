@@ -23,7 +23,9 @@ export class WhiteboardRemoveUserCommand extends Command<IOfficeState, Payload> 
     const { client, whiteboardId } = data
     const whiteboard = this.state.whiteboards.get(whiteboardId)
 
-    if (whiteboard.connectedUser.has(client.sessionId)) {
+    // an unknown id simply means there is nothing to remove; it must not throw and
+    // take the room down with it
+    if (whiteboard?.connectedUser.has(client.sessionId)) {
       whiteboard.connectedUser.delete(client.sessionId)
     }
   }

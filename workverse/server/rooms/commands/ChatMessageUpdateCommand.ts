@@ -14,7 +14,8 @@ export default class ChatMessageUpdateCommand extends Command<IOfficeState, Payl
     const player = this.room.state.players.get(client.sessionId)
     const chatMessages = this.room.state.chatMessages
 
-    if (!chatMessages) return
+    // the player may have disconnected between sending the message and this running
+    if (!player || !chatMessages) return
 
     /**
      * Only allow server to store a maximum of 100 chat messages:
