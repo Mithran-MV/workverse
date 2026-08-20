@@ -4,19 +4,23 @@ A multiplayer virtual office: a 2D world you walk around in, where standing near
 someone opens a video call, sitting at a computer starts a screen share, and a
 whiteboard is a shared room you step into.
 
-Built on [Colyseus](https://colyseus.io) for authoritative multiplayer state,
-[Phaser 3](https://phaser.io) for the world, React for the interface layer over the
-top, and WebRTC (via PeerJS) for the calls.
+Built at **ETHGlobal Bangkok**, where it won the **Push Protocol — Push Fusion Hack**
+prize. [Project showcase →](https://ethglobal.com/showcase/workverse-u4etz)
+
+Colyseus holds the authoritative multiplayer state, Phaser 3 renders the world,
+React sits over the top as the interface layer, WebRTC (through PeerJS) carries the
+calls, Push Protocol carries chat, and Privy handles wallet-based sign-in.
 
 ---
 
 ## What is in here
 
 ```
-workverse/
+.
 ├── server/        Colyseus game server - rooms, schema, message handlers
 ├── client/        Vite + React + Phaser client
-│   └── Chat/      separate Next.js app: Push Protocol chat
+│   ├── Chat/      separate Next.js app: Push Protocol chat
+│   └── provider/  Privy wallet provider
 ├── types/         schema interfaces and message enums shared by both
 └── Dockerfile     single-container build that serves the client from the server
 ```
@@ -24,7 +28,8 @@ workverse/
 The server is authoritative: clients send intent (`UPDATE_PLAYER`,
 `ADD_CHAT_MESSAGE`), the server applies it to the room schema, and Colyseus
 broadcasts the diff. The client mirrors that state into Redux, and Phaser renders
-from there.
+from there. Nothing a client says about the world is taken at face value, which is
+why a malicious or buggy client cannot move someone else's avatar.
 
 ## Running it
 
@@ -32,26 +37,25 @@ Requires **Node 20 or newer**.
 
 ```bash
 # server, on http://localhost:2567
-cd workverse
 npm install
 npm run dev
 
 # client, on http://localhost:5173, in a second terminal
-cd workverse/client
+cd client
 npm install
 npm run dev
 ```
 
 Open the client in two browser windows to see the multiplayer working. Copy
-`.env.example` to `.env` in both directories if you need to change anything; the
-defaults work for local development.
+`.env.example` to `.env` if you need to change anything; the defaults work for
+local development.
 
 ### The chat app
 
 `client/Chat` is a separate Next.js app using Push Protocol. It runs on its own:
 
 ```bash
-cd workverse/client/Chat
+cd client/Chat
 npm install
 npm run dev
 ```
@@ -75,7 +79,6 @@ somewhere that does not exist.
 ## Checks
 
 ```bash
-cd workverse
 npm run lint          # ESLint 9, flat config
 npm run typecheck     # server and shared types
 npm test              # multiplayer integration tests
@@ -114,13 +117,16 @@ client's `VITE_SERVER_URL` at the server service's `wss://` URL.
 The `Procfile` targets Heroku, whose free tier no longer exists; it still works on
 a paid dyno.
 
-## Attribution
+## Credits
 
-Workverse was written by [Fabio Mughilan](https://github.com/fabiomughilan).
-This fork modernises it: the client could not be installed at all (a React 18 /
-emoji-mart 3 peer conflict), the chat window's message list had been removed, no
-React component had ever been typechecked, and linting was broken repository-wide.
-See the commit history for the details.
+Workverse was built as a hackathon project at ETHGlobal Bangkok by
+[Fabio Mughilan](https://github.com/fabiomughilan) and
+[Mithran MV](https://github.com/Mithran-MV).
+
+Everything since has been about making it survive contact with a second machine:
+the client could not be installed at all (a React 18 / emoji-mart 3 peer conflict),
+the chat window's message list had been removed, no React component had ever been
+typechecked, and linting was broken repository-wide. See the commit history.
 
 The virtual-office concept follows in the footsteps of
 [SkyOffice](https://github.com/kevinshen56714/SkyOffice).
