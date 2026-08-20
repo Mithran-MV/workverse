@@ -7,10 +7,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-defaults:
-  run:
-    working-directory: workverse
-
 jobs:
   server:
     name: Server (lint, typecheck, tests)
@@ -23,7 +19,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: workverse/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - run: npm ci
       - run: npm run lint
@@ -45,18 +41,18 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: workverse/client/package-lock.json
+          cache-dependency-path: client/package-lock.json
 
       - name: Install
-        working-directory: workverse/client
+        working-directory: client
         run: npm ci
 
       - name: Typecheck
-        working-directory: workverse/client
+        working-directory: client
         run: npx tsc --noEmit
 
       - name: Build
-        working-directory: workverse/client
+        working-directory: client
         run: npx vite build
         env:
           VITE_SERVER_URL: wss://example.invalid
@@ -64,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: client-dist
-          path: workverse/client/dist
+          path: client/dist
 
   chat:
     name: Chat app (build)
@@ -77,12 +73,12 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: workverse/client/Chat/package-lock.json
+          cache-dependency-path: client/Chat/package-lock.json
 
       - name: Install
-        working-directory: workverse/client/Chat
+        working-directory: client/Chat
         run: npm ci
 
       - name: Build
-        working-directory: workverse/client/Chat
+        working-directory: client/Chat
         run: npm run build

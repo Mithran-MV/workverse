@@ -16,15 +16,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fabiomughilan/workverse.git"
+    "url": "git+https://github.com/Mithran-MV/workverse.git"
   },
   "keywords": [],
   "author": "fabiomughilan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/fabiomughilan/workverse/issues"
+    "url": "https://github.com/Mithran-MV/workverse/issues"
   },
-  "homepage": "https://github.com/fabiomughilan/workverse#readme",
+  "homepage": "https://github.com/Mithran-MV/workverse#readme",
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "eslint": "^9.39.5",
