@@ -1,13 +1,45 @@
 {
   "compilerOptions": {
-      "target": "es6",
-      "module": "commonjs",
-      "strict": true,
-      "esModuleInterop": true,
-      "declaration": true,
-      "outDir": "./dist",
-      "rootDir": "./src"
+    /* Vite serves ES modules and does the transpiling; tsc is only used to typecheck. */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "useDefineForClassFields": true,
+
+    /* Third party type definitions are not ours to fix, and several of the older ones
+       (emotion, colyseus schema) do not typecheck under a modern TypeScript. */
+    "skipLibCheck": true,
+
+    /* Vite emits the bundle; tsc must not write anything. */
+    "noEmit": true,
+
+    "types": ["vite/client"],
+
+    /* colyseus.js 0.14 and @colyseus/schema 1.x ship declarations in lib/, but their
+       "exports" maps have no "types" condition, so bundler resolution silently resolves
+       the .mjs with no types at all - which quietly turned every piece of room state into
+       `any`. Point at the declarations directly rather than dropping the whole project
+       back to legacy node resolution. */
+    "baseUrl": ".",
+    "paths": {
+      "colyseus.js": ["./node_modules/colyseus.js/lib/index.d.ts"],
+      "@colyseus/schema": ["./node_modules/@colyseus/schema/lib/index.d.ts"]
+    }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "provider/**/*.tsx", "../types/**/*.ts"],
+  "exclude": ["node_modules", "dist", "Chat"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

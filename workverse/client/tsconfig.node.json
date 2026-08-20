@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
-    // your compiler options
+    "composite": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./node_modules/.tmp/types"
   },
-  "include": [
-    "vite.config.ts"
-  ],
-  "exclude": [
-    // any paths you want to exclude
-  ]
+  "include": ["vite.config.ts"]
 }
