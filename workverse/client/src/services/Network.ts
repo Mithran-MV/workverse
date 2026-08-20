@@ -29,13 +29,35 @@ export default class Network {
 
   mySessionId!: string
 
-  constructor() {
+  /**
+   * Where the Colyseus server lives.
+   *
+   * In development that is port 2567 on whatever host is serving the page, which keeps
+   * `npm run dev` working over a LAN address as well as localhost. A production build has
+   * no such default, so a missing VITE_SERVER_URL fails loudly here instead of handing
+   * `undefined` to the client and failing later with a confusing socket error.
+   */
+  private static resolveEndpoint(): string {
+    const configured = import.meta.env.VITE_SERVER_URL
+
+    if (configured) {
+      return configured
+    }
+
+    if (import.meta.env.PROD) {
+      throw new Error(
+        'VITE_SERVER_URL is not set. A production build needs the Colyseus server URL, ' +
+          'for example wss://your-server.example.com'
+      )
+    }
+
     const protocol = window.location.protocol.replace('http', 'ws')
-    const endpoint =
-      process.env.NODE_ENV === 'production'
-        ? import.meta.env.VITE_SERVER_URL
-        : `${protocol}//${window.location.hostname}:2567`
-    this.client = new Client(endpoint)
+
+    return `${protocol}//${window.location.hostname}:2567`
+  }
+
+  constructor() {
+    this.client = new Client(Network.resolveEndpoint())
     this.joinLobbyRoom().then(() => {
       store.dispatch(setLobbyJoined(true))
     })
