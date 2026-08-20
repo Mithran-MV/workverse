@@ -4,9 +4,13 @@
   "description": "Server for workverse",
   "main": ".eslintrc.js",
   "scripts": {
-    "start": "cd server && ts-node-dev --project tsconfig.server.json --respawn --transpile-only index.ts",
-    "build:server": "tsc --project server/tsconfig.server.json",
+    "dev": "tsx watch server/index.ts",
+    "start": "node server/lib/server/index.js",
+    "build": "tsc --project server/tsconfig.server.json",
     "typecheck": "tsc --project server/tsconfig.server.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"{server,types}/**/*.ts\"",
+    "format:check": "prettier --check \"{server,types}/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -22,14 +26,13 @@
   },
   "homepage": "https://github.com/fabiomughilan/workverse#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "copyfiles": "^2.4.1",
-    "eslint": "^7.11.0",
-    "minimist": ">=1.2.2",
-    "rimraf": "^2.7.1",
-    "ts-node": "^8.1.0",
-    "ts-node-dev": "^1.0.0-pre.63",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.11"
   },
   "dependencies": {

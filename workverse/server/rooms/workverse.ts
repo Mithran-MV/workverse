@@ -175,7 +175,7 @@ export class workverse extends Room<OfficeState> {
     return true
   }
 
-  onJoin(client: Client, options: any) {
+  onJoin(client: Client, _options: any) {
     this.state.players.set(client.sessionId, new Player())
     client.send(Message.SEND_ROOM_DATA, {
       id: this.roomId,
@@ -184,7 +184,7 @@ export class workverse extends Room<OfficeState> {
     })
   }
 
-  onLeave(client: Client, consented: boolean) {
+  onLeave(client: Client, _consented: boolean) {
     if (this.state.players.has(client.sessionId)) {
       this.state.players.delete(client.sessionId)
     }
