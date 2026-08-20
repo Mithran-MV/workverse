@@ -10,6 +10,7 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true
     },
-    "include": ["."]
+    "include": ["."],
+    "exclude": ["lib", "__tests__"]
   }
   

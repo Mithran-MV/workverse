@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: workverse
+
+jobs:
+  server:
+    name: Server (lint, typecheck, tests)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workverse/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+
+      # Drives a real Colyseus server over a real WebSocket with the browser's own
+      # client library, so a dependency bump that breaks the wire protocol is caught here.
+      - run: npm test
+
+  client:
+    name: Client (typecheck, build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workverse/client/package-lock.json
+
+      - name: Install
+        working-directory: workverse/client
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: workverse/client
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: workverse/client
+        run: npx vite build
+        env:
+          VITE_SERVER_URL: wss://example.invalid
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: workverse/client/dist
+
+  chat:
+    name: Chat app (build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workverse/client/Chat/package-lock.json
+
+      - name: Install
+        working-directory: workverse/client/Chat
+        run: npm ci
+
+      - name: Build
+        working-directory: workverse/client/Chat
+        run: npm run build

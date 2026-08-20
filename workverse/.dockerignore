@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+client/dist
+server/lib
+client/Chat
+.git
+.github
+*.log
+.env
+.env.*
+!.env.example

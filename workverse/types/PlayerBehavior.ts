@@ -1,4 +1,4 @@
 export enum PlayerBehavior {
-    IDLE,
-    SITTING,
-  }
+  IDLE,
+  SITTING,
+}
